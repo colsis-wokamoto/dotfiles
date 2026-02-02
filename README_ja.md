@@ -23,6 +23,7 @@
 $ ln -s $HOME/.dotfiles/.zshrc $HOME/.zshrc
 $ ln -s $HOME/.dotfiles/.tmux.conf $HOME/.tmux.conf
 $ ln -s $HOME/.dotfiles/Brewfile $HOME/Brewfile
+$ brew bundle
 $ ln -s $HOME/.dotfiles/agent/skills $HOME/.cursor/skills
 $ ln -s $HOME/.dotfiles/agent/skills $HOME/.gemini/skills
 $ ln -s $HOME/.dotfiles/agent/skills $HOME/.codex/skills
