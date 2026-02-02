@@ -1,0 +1,19 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Editor swap/backup files
+*.swp
+*.swo
+*.swn
+*~
+
+# zsh completion cache
+.zcompdump*
