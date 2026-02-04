@@ -64,6 +64,7 @@ cask "vagrant"
 cask "virtualbox"
 cask "visual-studio-code", args: { appdir: "/Applications" }
 cask "zap"
+cask "zed"
 cask "zoom"
 mas "Commander One", id: 1035236694
 mas "GarageBand", id: 682658836
