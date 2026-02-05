@@ -27,12 +27,13 @@ Use targeted searches to find relevant patterns. Examples:
 - Output sinks: `echo`, `print`, `printf`, `<?=`, templating outputs
 - CSRF: `csrf` token generation/validation, hidden inputs, framework helpers
 - Other: `move_uploaded_file`, `file_get_contents`, `readfile`, `fopen`, `curl_*`, `exec`, `system`, `shell_exec`, `header('Location:')`
+- PHP short tags: `<?` (exclude `<?php` and `<?=`), report as compatibility/config risk when found
 
 ### 4) Analyze each viewpoint
 - **SQLi**: Verify all query executions use prepared statements or safe ORM bindings. Flag string-built SQL with user input.
 - **XSS**: Verify output encoding for any user-controlled data. Identify missing `htmlspecialchars`/equivalent or trusted sanitizers.
 - **CSRF**: Verify form flows include token generation and validation. Flag missing or inconsistent enforcement.
-- **Other**: Report only evidence-based issues (upload handling, path traversal, command injection, SSRF, open redirect, auth/session misuse).
+- **Other**: Report only evidence-based issues (upload handling, path traversal, command injection, SSRF, open redirect, auth/session misuse). Also note any PHP short tag usage as a compatibility/config risk.
 
 ### 5) Produce bilingual report
 - Use `assets/report-template-en.md` and `assets/report-template-ja.md`.
