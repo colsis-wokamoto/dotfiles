@@ -9,8 +9,8 @@ export EDITOR="vim"
 # Proxy/Noproxy
 export NO_PROXY="localhost,127.0.0.1,::1,wordpress.org,*.wordpress.org,wordpress.net,*.wordpress.net,gravatar.com,*.gravatar.com"
 export no_proxy="$NO_PROXY"
-# Docker default platform (Apple Silicon などでの互換向上)
-export DOCKER_DEFAULT_PLATFORM="linux/amd64"
+## Docker default platform (Apple Silicon などでの互換向上)
+#export DOCKER_DEFAULT_PLATFORM="linux/amd64"
 # PATH（先頭にユーザー領域）
 if [ -d "$HOME/.local/bin" ]; then
   export PATH="$HOME/.local/bin:$HOME/bin:$PATH"

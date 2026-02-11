@@ -39,6 +39,9 @@ GitLab CLI（glab）で GitLab 操作を実行するための手順・コマン�
 
 - 代表例: `glab mr create`, `glab mr merge`, `glab mr note`。
 - `glab mr create` は `--fill`, `--draft`, `--web`, `--related-issue` などを使い分ける。
+- 既存MR確認は `glab mr list --source-branch <src> --target-branch <target>` を基本にする。
+- `glab mr list` に `--state` フラグはない。状態で絞る場合は `--closed` または `--merged` を使う（open はデフォルト）。
+- 未確認のフラグを使う前に `glab mr <subcommand> --help` で実在フラグを必ず確認する。
 
 ### CI/CD
 

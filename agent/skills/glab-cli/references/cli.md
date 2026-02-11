@@ -49,6 +49,8 @@
 - Merge: `glab mr merge 123` (alias: `accept`)
 - View: `glab mr view 123`
 - List: `glab mr list --assignee=@me`
+- List by branches: `glab mr list --source-branch <src> --target-branch <target>`
+- State filters for `mr list`: use `--closed` or `--merged` (open is default; `--state` is not supported)
 
 ## CI/CD
 - `glab ci` works with pipelines and jobs.
@@ -70,3 +72,4 @@
 ## Notes
 - Always run `glab <command> --help` for latest flags/options.
 - Prefer `-R/--repo` when working outside a repo, or when targeting a different project.
+- For MR list flags, verify with `glab mr list --help` before using less-common options.
