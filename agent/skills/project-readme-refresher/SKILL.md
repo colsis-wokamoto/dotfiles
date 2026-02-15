@@ -35,6 +35,7 @@ Analyze a repository and update or create English and Japanese READMEs based on 
 - Use `assets/README_ja.md` as the template.
 - Keep the Japanese README aligned with the English content (same facts and structure), translated appropriately.
 - If the `textlint` command is available, run `textlint {文章ファイル}` for the Japanese README and revise wording/style based on findings.
+- After running `textlint`, if a rule requires bullet points to use the "dearu" style, you may ignore that specific finding when the entire document is consistently written in either "desu/masu" or "da/dearu" style.
 
 ### 5) Final checks
 - Verify that paths, commands, ports, and environment variables exist in the repo.
