@@ -39,6 +39,19 @@ if type brew &>/dev/null; then
   fpath=("$(brew --prefix)/share/zsh-completions" $fpath)
 fi
 
+# ==== git-prompt =====
+# https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh
+if [ -f $HOME/.zsh/git-prompt.sh ]; then
+  source $HOME/.zsh/git-prompt.sh
+
+  GIT_PS1_SHOWDIRTYSTATE=true
+  GIT_PS1_SHOWUNTRACKEDFILES=true
+  GIT_PS1_SHOWSTASHSTATE=true
+  GIT_PS1_SHOWUPSTREAM=auto
+
+  setopt PROMPT_SUBST ; PS1='%F{green}%n@%m%f: %F{cyan}%~%f %F{red}$(__git_ps1 "(%s)")%f \$ '
+fi
+
 # ===== Completion (compinit) =====
 autoload -Uz compinit
 # 生成場所を明示＆キャッシュ活用
@@ -96,3 +109,5 @@ setopt hist_ignore_dups share_history
 if [ -d ~/.antigravity/antigravity/bin ]; then
   export PATH="~/.antigravity/antigravity/bin:$PATH"
 fi
+
+[[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path zsh)"
