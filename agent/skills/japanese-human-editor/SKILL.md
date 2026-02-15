@@ -36,6 +36,7 @@ description: Rewrite AI-drafted Japanese text into natural, human-written Japane
 - 読者への質問がない。
 - 段落構成を大きく崩していない。
 - 文章量が元文の目安 ±20% に収まっている。
+- `textlint` コマンドが使用できる場合は `textlint {文章ファイル}` を実行し、指摘結果を参考に表現と表記を修正する。
 
 ## 追加運用ルール（技術記事リライト時）
 - 本文は「です・ます」調で統一する。

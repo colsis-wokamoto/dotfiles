@@ -34,6 +34,7 @@ Analyze a repository and update or create English and Japanese READMEs based on 
 - If neither exists, create `README_ja.md` at the repo root.
 - Use `assets/README_ja.md` as the template.
 - Keep the Japanese README aligned with the English content (same facts and structure), translated appropriately.
+- If the `textlint` command is available, run `textlint {文章ファイル}` for the Japanese README and revise wording/style based on findings.
 
 ### 5) Final checks
 - Verify that paths, commands, ports, and environment variables exist in the repo.

@@ -71,9 +71,14 @@ fi
 eval "$(direnv hook zsh)"
 
 # ===== cursor-agent =====
-if [ -f "$HOME/.local/bin/cursor-agent" ]; then
-  eval "$($HOME/.local/bin/cursor-agent shell-integration zsh)"
-fi
+#if [ -f "$HOME/.local/bin/cursor-agent" ]; then
+#  eval "$($HOME/.local/bin/cursor-agent shell-integration zsh)"
+#fi
+
+# ===== codex =====
+if command -v codex >/dev/null 2>&1; then
+  eval "$(codex completion zsh)"
+fi 
 
 # ===== Useful options =====
 #setopt auto_cd             # `cd` を省略してパスだけで移動
