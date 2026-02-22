@@ -1,0 +1,4 @@
+interface:
+  display_name: "AWS Cost Estimate"
+  short_description: "Estimate AWS monthly costs with clear assumptions."
+  default_prompt: "Estimate monthly AWS cost from architecture assumptions, collect the latest official prices for the target region, and output markdown with formulas, totals, caveats, and source links."
