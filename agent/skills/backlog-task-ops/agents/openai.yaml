@@ -1,0 +1,4 @@
+interface:
+  display_name: "Backlog Task Ops"
+  short_description: "List tasks, draft comments, and close issues"
+  default_prompt: "Use this skill to handle Backlog operations: list my open tasks with titles, prepare comment drafts, post confirmed comments, and close issues."
