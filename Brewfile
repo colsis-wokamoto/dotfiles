@@ -5,8 +5,9 @@ brew "ansible"
 brew "libpng"
 brew "autoconf"
 brew "automake"
-brew "aws-sam-cli"
 brew "awscli"
+brew "aws-sam-cli"
+brew "aws-vault"
 brew "freetype"
 brew "curl"
 brew "libzip"
@@ -15,6 +16,7 @@ brew "docker"
 brew "gemini-cli"
 brew "gh"
 brew "libiconv"
+brew "lftp"
 brew "git"
 brew "glab"
 brew "icu4c@77"
@@ -66,6 +68,7 @@ cask "google-chrome", args: { appdir: "/Applications" }
 cask "iterm2", args: { appdir: "/Applications" }
 cask "karabiner-elements", args: { appdir: "/Applications" }
 cask "kiro"
+cask "obsidian"
 cask "slack", args: { appdir: "/Applications" }
 cask "the-unarchiver", args: { appdir: "/Applications" }
 cask "vagrant"
