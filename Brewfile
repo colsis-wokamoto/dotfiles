@@ -63,6 +63,7 @@ cask "claude-code"
 cask "cursor"
 cask "cursor-cli"
 cask "docker-desktop"
+cask "drawio"
 cask "firefox"
 cask "google-chrome", args: { appdir: "/Applications" }
 cask "iterm2", args: { appdir: "/Applications" }
