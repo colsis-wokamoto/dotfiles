@@ -1,12 +1,12 @@
 # AGENTS.md — Codex エージェント運用ガイドライン
 
-> 常時参照される静的ルールのみを記述する。案件固有の可変情報は `memories/project_*.md` に分離する。
+> 常時参照される静的ルールのみを記述する。案件固有の可変情報は `memory/project_*.md` に分離する。
 
 ## 0. 適用範囲
-- 対象: 本リポジトリで起動するすべての Codex セッション
+- 対象: ホスト上で起動するすべての Codex セッション
 - 優先順位: ユーザー直接指示 > 本ファイル > Skills / プラグイン既定値
 
-## 1. ツール使用
+## 1. ツール使用ルール
 - 検索は `rg`、一覧は `rg --files`、手動編集は `apply_patch`、計画管理は `update_plan` を使う。
 - 独立した読み取り・検索・検証は `multi_tool_use.parallel` で並列化してよい。
 - サブエージェントは、ユーザーが明示的に委任・並列作業を求めた場合のみ使う。
@@ -14,7 +14,7 @@
 ## 2. 禁止事項
 - `git push --force` / `git reset --hard` / `rm -rf` はユーザー明示承認なしで実行しない。
 - `--no-verify` / `--no-gpg-sign` でフックを回避しない。
-- `.env` / `credentials*` / `~/.aws/*` / `~/.ssh/*` / `*.pem` / `*.key` は読み取り・編集・コミットしない。
+- `.env` / `credentials*` / `~/.aws/**` / `~/.ssh/**` / `*.pem` / `*.key` は読み取り・編集・コミットしない。
 
 ## 3. Skills / Plugins
 - Skill frontmatter には `description` / `inputs` / `outputs` / `side_effects` / `permissions` を書く。
@@ -32,15 +32,23 @@
 - 機密パス禁止は config だけに依存せず、本ファイルの禁止事項として維持する。
 
 ## 6. メモリ階層
-- 短期: 本会話内（plan / tasks）。`memories/` には書かない。
-- 中期: `memories/project_*.md`。案件・スプリント単位。
-- 長期: `memories/user_*.md` / `memories/feedback_*.md`。恒常的なユーザー像やフィードバック。
+- 短期: 本会話内（plan / tasks）。`memory/` には書かない。
+- 中期: `memory/project_*.md`。案件・スプリント単位。
+- 長期: `memory/user_*.md` / `memory/feedback_*.md`。恒常的なユーザー像やフィードバック。
 - `MEMORY.md` はインデックス専用、1 行 150 字以内。本ファイルに動的情報を書かない。
 
-## 7. 検証ループ
-完了報告前に、該当箇所の `lint` / `typecheck` / `test` を通す。UI 変更時はブラウザで主要経路とエッジケースを確認する。動作確認できない場合は「未検証」と明示する。
+## 7. キャッシュ最適化
+- 本ファイル上部ほど更新頻度が低い項目を配置（OpenAI のプロンプトキャッシュは安定なプレフィックスでヒット率が上がる）
+- 待機を伴う処理は短いポーリングを繰り返すより 1 度にまとめる（プロンプトキャッシュ TTL の浪費を抑える）
+
+## 8. 検証ループ
+タスクは以下を満たすまで「完了」と報告しない:
+- [ ] 該当箇所の `lint` / `typecheck` / `test` がパス（プロジェクトの規定コマンド）
+- [ ] UI 変更時はブラウザでゴールデンパス＋エッジケースを操作確認
+- [ ] ログ / 出力に想定外のエラー・警告が出ていない
+- [ ] 動作確認できない場合は「未検証」と明示してユーザーに判断を委ねる
 
 > 型チェックとテストはコードの正しさを確認するもので、機能の正しさは確認しない。
 
-## 8. 開発原則
+## 9. 開発原則
 詳細は `principles/` を参照する: `development.md`, `error-handling.md`, `code-quality.md`, `testing.md`, `security.md`, `performance.md`, `git.md`, `dependencies.md`

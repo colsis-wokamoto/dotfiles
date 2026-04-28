@@ -9,6 +9,7 @@ Gemini CLI 用の運用ガイドラインと設定サンプル。
 | `GEMINI.md` | エージェント運用ガイドライン本体（常時参照） |
 | `principles/` | 開発原則の詳細（必要時のみ参照） |
 | `settings.sample.json` | `~/.gemini/settings.json` のサンプル |
+| `policies/sensitive-files.sample.toml` | `~/.gemini/policies/sensitive-files.toml` のサンプル（機密ファイル / 破壊的操作の deny ルール） |
 
 Agent Skills はこのディレクトリではなく、リポジトリ直下の `skills/` に収容する。
 
@@ -20,6 +21,14 @@ Agent Skills はこのディレクトリではなく、リポジトリ直下の 
 ```bash
 ln -s "$HOME/.dotfiles/gemini/GEMINI.md"   "$HOME/.gemini/GEMINI.md"
 ln -s "$HOME/.dotfiles/gemini/principles"  "$HOME/.gemini/principles"
+```
+
+policy ファイルは内容を編集する余地があるため、symlink ではなくコピーで配置する。
+
+```bash
+mkdir -p "$HOME/.gemini/policies"
+cp "$HOME/.dotfiles/gemini/policies/sensitive-files.sample.toml" \
+   "$HOME/.gemini/policies/sensitive-files.toml"
 ```
 
 ## settings.sample.json を `~/.gemini/settings.json` にマージする
@@ -74,7 +83,7 @@ mv /tmp/gemini-settings.json ~/.gemini/settings.json
 |---|---|
 | `permissions.defaultMode` | `general.defaultApprovalMode` |
 | `permissions.allow` | `tools.allowed` / `mcp.allowed` |
-| `permissions.deny` | `settings.json` では直接表現せず、`GEMINI.md` の禁止事項として維持 |
+| `permissions.deny` | `policyPaths` 経由で `policies/*.toml` に deny ルールを記述（`policies/sensitive-files.sample.toml` 参照）+ `tools.confirmationRequired` で書き込み / 実行系を承認制 + `GEMINI.md` の禁止事項で多重防御 |
 | `sandbox.enabled` | `tools.sandbox` |
 | `sandbox.network.allowedDomains` | Gemini CLI ではドメイン単位の制御は持たない |
 | `statusLine` | Gemini CLI には対応する仕組みなし |
@@ -93,4 +102,4 @@ mv /tmp/gemini-settings.json ~/.gemini/settings.json
   ($tools0 + $tools1 | reduce .[] as $x ([]; if any(. == $x) then . else . + [$x] end))
   ```
 
-- 案件固有の可変情報は `GEMINI.md` ではなく、`save_memory` ツール（`scope: "project"`）で永続化する
+- 案件固有の可変情報は本ファイル（`gemini/GEMINI.md`）には書かず、プロジェクト直下の `GEMINI.md`（`write_file` / `replace`）または `~/.gemini/GEMINI.md` の `## Gemini Added Memories`（`save_memory`）に分離する

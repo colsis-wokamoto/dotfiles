@@ -1,0 +1,94 @@
+# sensitive-files.sample.toml
+#
+# Gemini CLI の policy engine で読み込まれる deny ルール集。
+# `~/.gemini/policies/sensitive-files.toml` として配置し、
+# settings.json の `policyPaths` から参照する。
+#
+# Claude の `claude/settings.sample.json` の `permissions.deny` と
+# 同等の機密ファイル / 破壊的操作の禁止を表現する。
+#
+# argsPattern: tool 引数を JSON 化した文字列に対する regex マッチ。
+# commandPrefix / commandRegex: run_shell_command の対象に対する糖衣。
+# decision = "deny" は実行ブロック + モデルメモリからの除外を意味する。
+
+# ===== 機密ファイル: 読み書き禁止 =====
+
+[[rule]]
+toolName = ["read_file", "read_many_files", "write_file", "replace", "glob", "search_file_content"]
+argsPattern = '\.env(\.|"|$)'
+decision = "deny"
+priority = 900
+denyMessage = ".env / .env.* ファイルへのアクセスは禁止されています"
+
+[[rule]]
+toolName = ["read_file", "read_many_files", "write_file", "replace", "glob", "search_file_content"]
+argsPattern = '/credentials'
+decision = "deny"
+priority = 900
+denyMessage = "credentials* ファイルへのアクセスは禁止されています"
+
+[[rule]]
+toolName = ["read_file", "read_many_files", "write_file", "replace", "glob", "search_file_content"]
+argsPattern = '\.(pem|key)("|$)'
+decision = "deny"
+priority = 900
+denyMessage = "*.pem / *.key ファイルへのアクセスは禁止されています"
+
+[[rule]]
+toolName = ["read_file", "read_many_files", "write_file", "replace", "glob", "search_file_content"]
+argsPattern = '/\.ssh/'
+decision = "deny"
+priority = 900
+denyMessage = "~/.ssh/ 配下へのアクセスは禁止されています"
+
+[[rule]]
+toolName = ["read_file", "read_many_files", "write_file", "replace", "glob", "search_file_content"]
+argsPattern = '/\.aws/'
+decision = "deny"
+priority = 900
+denyMessage = "~/.aws/ 配下へのアクセスは禁止されています"
+
+# ===== 破壊的シェル操作: 実行禁止 =====
+# CLAUDE.md / AGENTS.md / GEMINI.md の禁止事項に対応。
+
+[[rule]]
+toolName = "run_shell_command"
+commandPrefix = ["rm -rf", "sudo "]
+decision = "deny"
+priority = 800
+denyMessage = "破壊的または特権的な操作はユーザー明示承認が必要です"
+
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = '^git\s+push\s+(--force|-f)\b'
+decision = "deny"
+priority = 800
+denyMessage = "force push は禁止されています"
+
+[[rule]]
+toolName = "run_shell_command"
+commandPrefix = ["git reset --hard"]
+decision = "deny"
+priority = 800
+denyMessage = "git reset --hard は禁止されています"
+
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = '--no-(verify|gpg-sign)\b'
+decision = "deny"
+priority = 800
+denyMessage = "--no-verify / --no-gpg-sign でフックを回避しないでください"
+
+[[rule]]
+toolName = "run_shell_command"
+commandRegex = '\b(curl|wget)\b.*\|\s*(ba)?sh\b'
+decision = "deny"
+priority = 800
+denyMessage = "curl/wget | sh パイプライン実行は禁止されています"
+
+[[rule]]
+toolName = "run_shell_command"
+commandPrefix = ["terraform destroy"]
+decision = "deny"
+priority = 800
+denyMessage = "terraform destroy は禁止されています"

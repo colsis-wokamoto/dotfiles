@@ -13,9 +13,17 @@
     "enabled": false,
     "logPrompts": false
   },
+  "policyPaths": [
+    "~/.gemini/policies"
+  ],
   "tools": {
     "sandbox": true,
-    "allowed": []
+    "allowed": [],
+    "confirmationRequired": [
+      "run_shell_command",
+      "write_file",
+      "replace"
+    ]
   },
   "mcp": {
     "allowed": []
