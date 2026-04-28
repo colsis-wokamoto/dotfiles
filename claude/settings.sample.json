@@ -68,5 +68,9 @@
         "~/.dotfiles/"
       ]
     }
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/fetch-claude-usage.sh"
   }
 }

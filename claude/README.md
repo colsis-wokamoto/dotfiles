@@ -9,6 +9,7 @@ Claude Code 用の運用ガイドラインと設定サンプル。
 | `CLAUDE.md` | エージェント運用ガイドライン本体（常時参照） |
 | `principles/` | 開発原則の詳細（必要時のみ参照） |
 | `settings.sample.json` | `~/.claude/settings.json` のサンプル |
+| `fetch-claude-usage.sh` | Claude のトークン消費量を画面下部 (statusLine) に表示するスクリプト |
 
 ## settings.sample.json を `~/.claude/settings.json` にマージする
 
@@ -49,6 +50,42 @@ diff <(jq -S . ~/.claude/settings.json) <(jq -S . /tmp/claude-settings.json)
 ```bash
 mv /tmp/claude-settings.json ~/.claude/settings.json
 ```
+
+## トークン消費量を statusLine に表示する
+
+`settings.sample.json` には以下の `statusLine` 設定を含めている。
+
+```json
+"statusLine": {
+  "type": "command",
+  "command": "~/.claude/fetch-claude-usage.sh"
+}
+```
+
+`fetch-claude-usage.sh` は macOS Keychain から Claude Code の OAuth トークンを取得し、
+`https://api.anthropic.com/api/oauth/usage` を叩いて 5 時間枠 / 7 日枠の使用率と
+リセット時刻を 1 行で表示する。Claude Code の statusLine から呼び出される想定。
+
+### 配置とパーミッション
+
+```bash
+cp claude/fetch-claude-usage.sh ~/.claude/fetch-claude-usage.sh
+chmod +x ~/.claude/fetch-claude-usage.sh
+```
+
+### 依存
+
+- `security`（macOS 標準）— Keychain からトークン取得
+- `jq` — JSON パース
+- `gdate`（GNU coreutils）または `python3` — ISO8601 → ローカル時刻変換のいずれか
+
+### 表示例
+
+```
+5h ■■■□□□□□□□ 30% 04/28 18:00 | 7d ■■■■■□□□□□ 50% 05/02 09:00
+```
+
+使用率は 50% 以上で黄、80% 以上で赤に着色される。
 
 ## 注意点
 
