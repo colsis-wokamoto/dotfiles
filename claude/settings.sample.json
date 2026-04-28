@@ -61,7 +61,12 @@
     },
     "filesystem": {
       "denyRead": ["~/"],
-      "allowRead": ["."]
+      "allowRead": [
+        ".",
+        "~/.gitconfig",
+        "~/.config/git/",
+        "~/.dotfiles/"
+      ]
     }
   }
 }
