@@ -1,101 +1,46 @@
-# CLAUDE.md — エージェント運用ガイドライン
+# AGENTS.md — Codex エージェント運用ガイドライン
 
-> このファイルは常時参照される。**1,500 字以内**を目安に静的ルールのみ記述する。
-> 案件固有の可変情報は `memories/project_*.md` に切り出すこと。
-
----
+> 常時参照される静的ルールのみを記述する。案件固有の可変情報は `memories/project_*.md` に分離する。
 
 ## 0. 適用範囲
-- 対象: 本リポジトリで起動するすべての Claude Code セッション
+- 対象: 本リポジトリで起動するすべての Codex セッション
 - 優先順位: ユーザー直接指示 > 本ファイル > Skills / プラグイン既定値
 
----
+## 1. ツール使用
+- 検索は `rg`、一覧は `rg --files`、手動編集は `apply_patch`、計画管理は `update_plan` を使う。
+- 独立した読み取り・検索・検証は `multi_tool_use.parallel` で並列化してよい。
+- サブエージェントは、ユーザーが明示的に委任・並列作業を求めた場合のみ使う。
 
-## 1. ハーネスパラダイム（ツール使用ルール）
-### 必ず使う
-- ファイル読み: `Read` / 検索: `Grep` / 一覧: `Glob`（`cat` / `grep` / `find` を Bash で呼ばない）
-- 計画管理: `TaskCreate`、長時間処理: `run_in_background`
+## 2. 禁止事項
+- `git push --force` / `git reset --hard` / `rm -rf` はユーザー明示承認なしで実行しない。
+- `--no-verify` / `--no-gpg-sign` でフックを回避しない。
+- `.env` / `credentials*` / `~/.aws/*` / `~/.ssh/*` / `*.pem` / `*.key` は読み取り・編集・コミットしない。
 
-### 使ってよい（条件付き）
-- `Bash`: シェル固有処理のみ。読み取り・検索・編集には使用禁止
-- `Agent`: 3 クエリ以上の調査、または独立並列タスク
+## 3. Skills / Plugins
+- Skill frontmatter には `description` / `inputs` / `outputs` / `side_effects` / `permissions` を書く。
+- `permissions` は必要な Codex ツール、MCP、外部コマンドを最小権限で明記する。
+- MCP や外部ツールは必要時のみ有効化し、ネットワーク・書き込み・破壊的操作は実行前に承認要否を確認する。
 
-### 使用禁止
-- `git push --force` / `git reset --hard` / `rm -rf` をユーザー明示承認なしで実行しない
-- `--no-verify` / `--no-gpg-sign` でフックを回避しない
-- 以下の機密ファイル/ディレクトリの読み取り・編集・コミットを行わない
-  - `.env` / `credentials*`
-  - `~/.aws/*` / `~/.ssh/*`
-  - `*.pem` / `*.key`
+## 4. 失敗時のループ制御
+- 同一コマンドの連続失敗 2 回で停止し、状況を報告する。
+- 失敗時は、原因特定 → 別ツール / 別アプローチを 1 つ試す → なお失敗ならユーザーに判断を仰ぐ。
+- ループ抑制を理由に `try/catch` で握りつぶさない。
 
----
+## 5. パーミッション設計
+- `~/.codex/config.toml` では `approval_policy` と `sandbox_mode` を明示する。
+- 既定は `workspace-write` + 承認制、信頼済みプロジェクトだけ緩和する。
+- 機密パス禁止は config だけに依存せず、本ファイルの禁止事項として維持する。
 
-## 2. ツールコントラクト（Skills / Slash Commands）
-### カスタム Skill を追加するとき
-すべての Skill frontmatter に以下を記述:
-- `description`: 起動条件を「いつ使うか／使わないか」で書く
-- `inputs`: 期待する引数と型
-- `outputs`: 返却物の形式
-- `side_effects`: 書き込み先・外部通信の有無
-- `permissions`: 必要な `allowed-tools`
+## 6. メモリ階層
+- 短期: 本会話内（plan / tasks）。`memories/` には書かない。
+- 中期: `memories/project_*.md`。案件・スプリント単位。
+- 長期: `memories/user_*.md` / `memories/feedback_*.md`。恒常的なユーザー像やフィードバック。
+- `MEMORY.md` はインデックス専用、1 行 150 字以内。本ファイルに動的情報を書かない。
 
-### Slash Command
-- `allowed-tools` を必須記載（最小権限）
-- `description` 1 行で起動条件を明記
+## 7. 検証ループ
+完了報告前に、該当箇所の `lint` / `typecheck` / `test` を通す。UI 変更時はブラウザで主要経路とエッジケースを確認する。動作確認できない場合は「未検証」と明示する。
 
----
+> 型チェックとテストはコードの正しさを確認するもので、機能の正しさは確認しない。
 
-## 3. クエリエンジン（失敗時のループ制御）
-- 同一コマンドの**連続失敗 2 回**で停止し、ユーザーに状況報告
-- 失敗時のフォールバック順序:
-  1. エラーメッセージで根本原因を特定
-  2. 別ツール / 別アプローチを 1 つ試す
-  3. それでも失敗したらユーザーに判断を仰ぐ
-- ループ抑制を理由に `try/catch` で握りつぶさない
-
----
-
-## 4. パーミッション設計
-- `.claude/settings.json` で **Deny を先、Allow を後**に定義
-- 機密パス（`**/.env*`, `**/credentials*`, `~/.aws/**`, `~/.ssh/**`, `**/*.pem`, `**/*.key`）は **Deny** に明記
-- 読み取り専用コマンド（`git status`, `ls`, `pwd` 等）は Allow で先回り承認
-- 書き込み・ネットワーク・破壊的操作は Allow に入れず都度承認
-
----
-
-## 5. メモリ階層
-- **短期**: 本会話内（plan / tasks）— `memories/` には書かない
-- **中期**: `memories/project_*.md` — 案件・スプリント単位の状態
-- **長期**: `memories/user_*.md` / `memories/feedback_*.md` — ユーザー像・恒常的フィードバック
-- `MEMORY.md` はインデックス専用、1 行 150 字以内
-- 本ファイルには**動的情報を書かない**（日付・人名・進行中タスク等）
-
----
-
-## 6. キャッシュ最適化
-- 本ファイル上部ほど更新頻度が低い項目を配置（§0–§4）
-- 動的情報（締切・担当・現在のフェーズ）は **memories** または **plan** に分離
-- 5 分以上の待機が必要な場合は `ScheduleWakeup` の delaySeconds を 270s 以下 or 1200s 以上で選択
-
----
-
-## 7. 検証ループ（完了条件）
-タスクは以下を満たすまで「完了」と報告しない:
-- [ ] 該当箇所の `lint` / `typecheck` / `test` がパス（プロジェクトの規定コマンド）
-- [ ] UI 変更時はブラウザでゴールデンパス＋エッジケースを操作確認
-- [ ] ログ / 出力に想定外のエラー・警告が出ていない
-- [ ] 動作確認できない場合は「未検証」と明示してユーザーに判断を委ねる
-
-> 「型チェックとテストはコードの正しさを確認するもので、機能の正しさは確認しない」
-
----
-
-## 8. 開発原則（詳細は `principles/` 参照）
-- [development.md](principles/development.md) — 基本理念・プロジェクトコンテキスト・トレードオフ・継続的改善
-- [error-handling.md](principles/error-handling.md) — エラーハンドリング
-- [code-quality.md](principles/code-quality.md) — コード品質・保守性・ドキュメント
-- [testing.md](principles/testing.md) — テスト規律
-- [security.md](principles/security.md) — セキュリティ
-- [performance.md](principles/performance.md) — パフォーマンス・信頼性
-- [git.md](principles/git.md) — Git 運用・コードレビュー・デバッグ
-- [dependencies.md](principles/dependencies.md) — 依存関係管理
+## 8. 開発原則
+詳細は `principles/` を参照する: `development.md`, `error-handling.md`, `code-quality.md`, `testing.md`, `security.md`, `performance.md`, `git.md`, `dependencies.md`
