@@ -1,13 +1,14 @@
 # CLAUDE.md — エージェント運用ガイドライン
 
 > このファイルは常時参照される。**1,500 字以内**を目安に静的ルールのみ記述する。
-> 案件固有の可変情報は `memories/project_*.md` に切り出すこと。
+> 案件固有の可変情報は `memory/project_*.md` に切り出すこと。
 
 ---
 
 ## 0. 適用範囲
-- 対象: 本リポジトリで起動するすべての Claude Code セッション
-- 優先順位: ユーザー直接指示 > 本ファイル > Skills / プラグイン既定値
+- 配置: `~/.claude/CLAUDE.md`（ユーザーグローバル、全プロジェクト共通）
+- 対象: ホスト上で起動するすべての Claude Code セッション
+- 優先順位: ユーザー直接指示 > プロジェクト直下 `CLAUDE.md` > 本ファイル > Skills / プラグイン既定値
 
 ---
 
@@ -64,10 +65,12 @@
 ---
 
 ## 5. メモリ階層
-- **短期**: 本会話内（plan / tasks）— `memories/` には書かない
-- **中期**: `memories/project_*.md` — 案件・スプリント単位の状態
-- **長期**: `memories/user_*.md` / `memories/feedback_*.md` — ユーザー像・恒常的フィードバック
-- `MEMORY.md` はインデックス専用、1 行 150 字以内
+実体は `~/.claude/projects/<project-slug>/memory/`（auto-memory システム、プロジェクト別）。
+- **短期**: 本会話内（plan / tasks）— `memory/` には書かない
+- **中期**: `memory/project_*.md` — 案件・スプリント単位の状態
+- **長期**: `memory/user_*.md` / `memory/feedback_*.md` — ユーザー像・恒常的フィードバック
+- **参照**: `memory/reference_*.md` — 外部システム（Linear / Slack / Grafana 等）へのポインタ
+- `MEMORY.md` はインデックス専用、1 行 150 字以内（200 行超は切り詰め）
 - 本ファイルには**動的情報を書かない**（日付・人名・進行中タスク等）
 
 ---
