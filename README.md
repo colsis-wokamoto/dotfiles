@@ -5,8 +5,9 @@
 個人用の設定ファイルと、AI Agent CLI 向けの運用ガイドライン・設定サンプル・Agent Skills をまとめたリポジトリです。
 
 - ルート直下に Zsh、tmux、Homebrew の基本設定を置いています。
-- `claude/` に Claude Code 用の設定サンプルを置いています。
-- `codex/` に Codex CLI 用の設定サンプルを置いています。
+- `claude/` に Claude Code 用の運用ガイドラインと設定サンプルを置いています。
+- `codex/` に Codex CLI 用の運用ガイドラインと設定サンプルを置いています。
+- `gemini/` に Gemini CLI 用の運用ガイドラインと設定サンプルを置いています。
 - Agent Skills はリポジトリ直下の `skills/` に収容しています。
 - 複数のエージェントで共有する開発原則は `principles/` に分離しています。
 - MCP 設定サンプルはルート直下の `mcp.sample.json` に置いています。
@@ -19,8 +20,9 @@
 | `.tmux.conf` | tmux 設定 |
 | `Brewfile` | Homebrew Bundle 定義 |
 | `mcp.sample.json` | MCP 設定サンプル |
-| `claude/` | Claude Code 用の `CLAUDE.md` と `settings.sample.json` |
+| `claude/` | Claude Code 用の `CLAUDE.md`、`settings.sample.json`、`fetch-claude-usage.sh` |
 | `codex/` | Codex CLI 用の `AGENTS.md` と `config.sample.toml` |
+| `gemini/` | Gemini CLI 用の `GEMINI.md`、`settings.sample.json`、`policies/` |
 | `skills/` | Agent Skills |
 | `principles/` | エージェント共通の開発原則 |
 | `README_en.md` | 英語版 README |
@@ -42,7 +44,7 @@ ln -s "$HOME/.dotfiles/claude/principles" "$HOME/.claude/principles"
 ln -s "$HOME/.dotfiles/skills" "$HOME/.claude/skills"
 ```
 
-`claude/settings.sample.json` の取り込み手順は [claude/README.md](claude/README.md) を参照してください。
+`claude/settings.sample.json` のマージ手順と `fetch-claude-usage.sh` の配置手順は [claude/README.md](claude/README.md) を参照してください。
 
 ### Codex CLI
 
@@ -53,3 +55,13 @@ ln -s "$HOME/.dotfiles/skills" "$HOME/.codex/skills"
 ```
 
 `codex/config.sample.toml` の取り込み手順は [codex/README.md](codex/README.md) を参照してください。
+
+### Gemini CLI
+
+```bash
+ln -s "$HOME/.dotfiles/gemini/GEMINI.md" "$HOME/.gemini/GEMINI.md"
+ln -s "$HOME/.dotfiles/gemini/principles" "$HOME/.gemini/principles"
+ln -s "$HOME/.dotfiles/skills" "$HOME/.gemini/skills"
+```
+
+`gemini/settings.sample.json` のマージ手順と `policies/sensitive-files.sample.toml` の配置手順は [gemini/README.md](gemini/README.md) を参照してください。
