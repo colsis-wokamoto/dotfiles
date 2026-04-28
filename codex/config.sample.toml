@@ -1,0 +1,47 @@
+# Codex CLI configuration sample for ~/.codex/config.toml.
+#
+# This is the closest Codex equivalent of claude/settings.sample.json.
+# Claude's permissions.deny / permissions.allow entries do not have a
+# one-to-one Codex config key. Keep command and path prohibitions in AGENTS.md
+# and rely on sandbox + approval policy here.
+
+# Ask before commands outside Codex's built-in trusted set.
+# This approximates Claude's explicit allow list for read-only commands.
+approval_policy = "untrusted"
+
+# Allow edits only inside the current workspace and configured writable roots.
+# This approximates Claude's sandbox.enabled + filesystem allowRead ["."]
+# while avoiding full home-directory access.
+sandbox_mode = "workspace-write"
+
+[sandbox_workspace_write]
+# Codex currently exposes network access as a boolean for workspace-write mode.
+# Claude's allowedDomains cannot be represented directly here.
+network_access = false
+
+[profiles.default]
+approval_policy = "untrusted"
+sandbox_mode = "workspace-write"
+
+[profiles.default.sandbox_workspace_write]
+network_access = false
+
+[profiles.full_auto]
+# Lower-friction profile for trusted repositories.
+# Use only with trusted project paths.
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+[profiles.full_auto.sandbox_workspace_write]
+network_access = true
+
+[profiles.readonly_quiet]
+# Read-only, non-interactive profile for inspection tasks.
+approval_policy = "never"
+sandbox_mode = "read-only"
+
+# Example project-specific override:
+#
+# [projects."/path/to/trusted/repository"]
+# trust_level = "trusted"
+# profile = "full_auto"
