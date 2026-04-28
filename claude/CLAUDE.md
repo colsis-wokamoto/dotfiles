@@ -47,20 +47,19 @@
 ---
 
 ## 3. クエリエンジン（失敗時のループ制御）
-- 同一コマンドの**連続失敗 2 回**で停止し、ユーザーに状況報告
-- 失敗時のフォールバック順序:
-  1. エラーメッセージで根本原因を特定
-  2. 別ツール / 別アプローチを 1 つ試す
-  3. それでも失敗したらユーザーに判断を仰ぐ
-- ループ抑制を理由に `try/catch` で握りつぶさない
+- 同一コマンドの**連続失敗 2 回**で停止し、ユーザー報告
+- 失敗時: 根本原因特定 → 別ツール/別アプローチを 1 つ試す → なお失敗ならユーザー判断を仰ぐ
+- ループ抑制目的の `try/catch` で握りつぶさない（確認できた事実と未確認事項を分けて報告）
 
 ---
 
 ## 4. パーミッション設計
 - `.claude/settings.json` で **Deny を先、Allow を後**に定義
 - 機密パス（`**/.env*`, `**/credentials*`, `~/.aws/**`, `~/.ssh/**`, `**/*.pem`, `**/*.key`）は **Deny** に明記
+- `defaultMode: acceptEdits` 前提。Edit / Write はサンドボックス内で自動承認
 - 読み取り専用コマンド（`git status`, `ls`, `pwd` 等）は Allow で先回り承認
-- 書き込み・ネットワーク・破壊的操作は Allow に入れず都度承認
+- Bash の書き込み・ネットワーク・破壊的操作、および外部サービス操作は Allow に入れず都度承認
+- `git push --force` / `git reset --hard` / `rm -rf` 等の不可逆操作は Deny に明記し、回避経路（`rmdir`, `find -delete`, `gh * close/delete`, `git branch -D` 等）も塞ぐ
 
 ---
 
@@ -76,9 +75,8 @@
 ---
 
 ## 6. キャッシュ最適化
-- 本ファイル上部ほど更新頻度が低い項目を配置（§0–§4）
-- 動的情報（締切・担当・現在のフェーズ）は **memories** または **plan** に分離
-- 5 分以上の待機が必要な場合は `ScheduleWakeup` の delaySeconds を 270s 以下 or 1200s 以上で選択
+- 本ファイル上部ほど更新頻度が低い項目を配置
+- `ScheduleWakeup` の `delaySeconds` は 270s 以下 or 1200s 以上を選ぶ（5 分前後はキャッシュミスのみ発生）
 
 ---
 
@@ -93,12 +91,5 @@
 
 ---
 
-## 8. 開発原則（詳細は `principles/` 参照）
-- [development.md](principles/development.md) — 基本理念・プロジェクトコンテキスト・トレードオフ・継続的改善
-- [error-handling.md](principles/error-handling.md) — エラーハンドリング
-- [code-quality.md](principles/code-quality.md) — コード品質・保守性・ドキュメント
-- [testing.md](principles/testing.md) — テスト規律
-- [security.md](principles/security.md) — セキュリティ
-- [performance.md](principles/performance.md) — パフォーマンス・信頼性
-- [git.md](principles/git.md) — Git 運用・コードレビュー・デバッグ
-- [dependencies.md](principles/dependencies.md) — 依存関係管理
+## 8. 開発原則
+詳細は `principles/` 配下を参照: `development.md` / `error-handling.md` / `code-quality.md` / `testing.md` / `security.md` / `performance.md` / `git.md` / `dependencies.md`
