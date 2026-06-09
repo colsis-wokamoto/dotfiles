@@ -119,3 +119,11 @@ if [ -d ~/.antigravity/antigravity/bin ]; then
 fi
 
 [[ "$TERM_PROGRAM" == "kiro" ]] && . "$(kiro --locate-shell-integration-path zsh)"
+
+if [[ -z "$TMUX" && $- == *l* ]]; then
+  # TTY番号（例: pts-1）を取得してセッション名にする
+  SESSION_NAME="tab-$(basename $(tty))"
+
+  # 既存のセッションがあればアタッチ、なければ新規作成
+  tmux attach-session -t "$SESSION_NAME" || tmux new-session -s "$SESSION_NAME"
+fi
