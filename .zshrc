@@ -1,6 +1,5 @@
 # ===== Aliases =====
 alias ll="ls -la"
-alias python="python3"
 alias aws_id="aws sts get-caller-identity --query 'Account' --output text"
 alias wp-env-noproxy="env -u HTTP_PROXY -u HTTPS_PROXY -u http_proxy -u https_proxy wp-env"
 
@@ -24,6 +23,15 @@ export PATH=$HOME/.nodebrew/current/bin:$PATH
 if [ -f "$HOME/.local-environment-variables" ]; then
   source "$HOME/.local-environment-variables"
 fi
+export HOMEBREW_NO_REQUIRE_TAP_TRUST=1
+
+# ===== Python =====
+export PATH="$(brew --prefix python)/libexec/bin:$PATH"
+alias pip="pipx"
+
+# ===== Headroom =====
+## uv tool install --python 3.13 "headroom-ai[all]" --with fastapi --with uvicorn --with "httpx[http2]"" --reinstall
+export HEADROOM_TELEMETRY=off
 
 # ===== MySQL Client =====
 if [ -d /opt/homebrew/opt/mysql-client ]; then

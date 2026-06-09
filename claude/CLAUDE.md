@@ -1,90 +1,93 @@
-# CLAUDE.md — エージェント運用ガイドライン
+# CLAUDE.md — Agent Operation Guidelines
 
-> 常時参照される静的ルールのみを記述する。案件固有の可変情報は `memory/project_*.md` に分離する。
-
----
-
-## 0. 適用範囲
-- 対象: ホスト上で起動するすべての Claude Code セッション
-- 優先順位: ユーザー直接指示 > プロジェクト直下 `CLAUDE.md` > 本ファイル > Skills / プラグイン既定値
+> Describe only static rules that are always referenced. Project-specific mutable
+> information must be separated into `memory/project_*.md`.
 
 ---
 
-## 1. ツール使用ルール
-### 必ず使う
-- ファイル読み: `Read` / 検索: `Grep` / 一覧: `Glob`（`cat` / `grep` / `find` を Bash で呼ばない）
-- 計画管理: `TaskCreate`、長時間処理: `run_in_background`
-
-### 使ってよい（条件付き）
-- `Bash`: シェル固有処理のみ。読み取り・検索・編集には使用禁止
-- `Agent`: 3 クエリ以上の調査、または独立並列タスク
-
-### 使用禁止
-- `git push --force` / `git reset --hard` / `rm -rf` をユーザー明示承認なしで実行しない
-- `--no-verify` / `--no-gpg-sign` でフックを回避しない
-- `.env` / `credentials*` / `~/.aws/**` / `~/.ssh/**` / `*.pem` / `*.key` は読み取り・編集・コミットしない。
+## 0. Scope
+- Target: every Claude Code session launched on the host
+- Priority: direct user instruction > project-root `CLAUDE.md` > this file > Skills / plugin defaults
 
 ---
 
-## 2. ツールコントラクト（Skills / Slash Commands）
-### カスタム Skill を追加するとき
-すべての Skill frontmatter に以下を記述:
-- `description`: 起動条件を「いつ使うか／使わないか」で書く
-- `inputs`: 期待する引数と型
-- `outputs`: 返却物の形式
-- `side_effects`: 書き込み先・外部通信の有無
-- `permissions`: 必要な `allowed-tools`
+## 1. Tool Usage Rules
+### Always use
+- Reading files: `Read` / Searching: `Grep` / Listing: `Glob` (do not call `cat` / `grep` / `find` via Bash)
+- Plan management: `TaskCreate`; long-running processes: `run_in_background`
+
+### May use (conditionally)
+- `Bash`: shell-specific processing only. Prohibited for reading, searching, and editing
+- `Agent`: investigations of 3 or more queries, or independent parallel tasks
+
+### Prohibited
+- Do not run `git push --force` / `git reset --hard` / `rm -rf` without explicit user approval
+- Do not bypass hooks with `--no-verify` / `--no-gpg-sign`
+- Do not read, edit, or commit `.env` / `credentials*` / `~/.aws/**` / `~/.ssh/**` / `*.pem` / `*.key`.
+
+---
+
+## 2. Tool Contracts (Skills / Slash Commands)
+### When adding a custom Skill
+Include the following in every Skill's frontmatter:
+- `description`: state the trigger conditions in terms of "when to use / when not to use"
+- `inputs`: expected arguments and their types
+- `outputs`: format of the returned artifacts
+- `side_effects`: write destinations and whether external communication occurs
+- `permissions`: the required `allowed-tools`
 
 ### Slash Command
-- `allowed-tools` を必須記載（最小権限）
-- `description` 1 行で起動条件を明記
+- `allowed-tools` is mandatory (least privilege)
+- `description`: state the trigger condition in a single line
 
 ---
 
-## 3. 失敗時のループ制御
-- 同一コマンドの**連続失敗 2 回**で停止し、ユーザー報告
-- 失敗時: 根本原因特定 → 別ツール/別アプローチを 1 つ試す → なお失敗ならユーザー判断を仰ぐ
-- ループ抑制目的の `try/catch` で握りつぶさない（確認できた事実と未確認事項を分けて報告）
+## 3. Failure Loop Control
+- Stop after **2 consecutive failures** of the same command and report to the user
+- On failure: identify the root cause → try one alternative tool/approach → if it still fails, defer to the user's judgment
+- Do not swallow errors with `try/catch` for the purpose of loop suppression (report confirmed facts and unconfirmed items separately)
 
 ---
 
-## 4. パーミッション設計
-- `.claude/settings.json` で **Deny を先、Allow を後**に定義
-- 機密パス（`**/.env*`, `**/credentials*`, `~/.aws/**`, `~/.ssh/**`, `**/*.pem`, `**/*.key`）は **Deny** に明記
-- `defaultMode: acceptEdits` 前提。Edit / Write はサンドボックス内で自動承認
-- 読み取り専用コマンド（`git status`, `ls`, `pwd` 等）は Allow で先回り承認
-- Bash の書き込み・ネットワーク・破壊的操作、および外部サービス操作は Allow に入れず都度承認
-- `git push --force` / `git reset --hard` / `rm -rf` 等の不可逆操作は Deny に明記し、回避経路（`rmdir`, `find -delete`, `gh * close/delete`, `git branch -D` 等）も塞ぐ
+## 4. Permission Design
+- In `.claude/settings.json`, define **Deny first, Allow after**
+- Explicitly list sensitive paths (`**/.env*`, `**/credentials*`, `~/.aws/**`, `~/.ssh/**`, `**/*.pem`, `**/*.key`) under **Deny**
+- Assume `defaultMode: acceptEdits`. Edit / Write are auto-approved within the sandbox
+- Pre-approve read-only commands (`git status`, `ls`, `pwd`, etc.) under Allow
+- Do not place Bash write/network/destructive operations or external-service operations under Allow; approve them case by case
+- List irreversible operations such as `git push --force` / `git reset --hard` / `rm -rf` under Deny, and also block their bypass routes (`rmdir`, `find -delete`, `gh * close/delete`, `git branch -D`, etc.)
 
 ---
 
-## 5. メモリ階層
-実体は `~/.claude/projects/<project-slug>/memory/`（auto-memory システム、プロジェクト別）。
-- 短期: 本会話内（plan / tasks）— `memory/` には書かない
-- 中期: `memory/project_*.md` — 案件・スプリント単位の状態
-- 長期: `memory/user_*.md` / `memory/feedback_*.md` — ユーザー像・恒常的フィードバック
-- 参照: `memory/reference_*.md` — 外部システム（Linear / Slack / Grafana 等）へのポインタ
-- `MEMORY.md` はインデックス専用、1 行 150 字以内（200 行超は切り詰め）
-- 本ファイルには**動的情報を書かない**（日付・人名・進行中タスク等）
+## 5. Memory Hierarchy
+The actual store is `~/.claude/projects/<project-slug>/memory/` (auto-memory system, per project).
+- Short-term: within this conversation (plan / tasks) — do not write to `memory/`
+- Mid-term: `memory/project_*.md` — state at the project/sprint level
+- Long-term: `memory/user_*.md` / `memory/feedback_*.md` — user profile and persistent feedback
+- Reference: `memory/reference_*.md` — pointers to external systems (Linear / Slack / Grafana, etc.)
+- `MEMORY.md` is index-only, max 150 characters per line (truncate beyond 200 lines)
+- Do **not** write dynamic information in this file (dates, names, in-progress tasks, etc.)
 
 ---
 
-## 6. キャッシュ最適化
-- 本ファイル上部ほど更新頻度が低い項目を配置
-- `ScheduleWakeup` の `delaySeconds` は 270s 以下 or 1200s 以上を選ぶ（5 分前後はキャッシュミスのみ発生）
+## 6. Cache Optimization
+- Place items with lower update frequency higher up in this file
+- For `ScheduleWakeup`, choose a `delaySeconds` of 270s or less, or 1200s or more (around 5 minutes only produces cache misses)
 
 ---
 
-## 7. 検証ループ
-タスクは以下を満たすまで「完了」と報告しない:
-- [ ] 該当箇所の `lint` / `typecheck` / `test` がパス（プロジェクトの規定コマンド）
-- [ ] UI 変更時はブラウザでゴールデンパス＋エッジケースを操作確認
-- [ ] ログ / 出力に想定外のエラー・警告が出ていない
-- [ ] 動作確認できない場合は「未検証」と明示してユーザーに判断を委ねる
+## 7. Verification Loop
+Do not report a task as "complete" until all of the following are satisfied:
+- [ ] `lint` / `typecheck` / `test` for the relevant code passes (the project's prescribed commands)
+- [ ] For UI changes, verify the golden path plus edge cases by operating them in a browser
+- [ ] No unexpected errors or warnings appear in the logs / output
+- [ ] If verification is not possible, explicitly state "unverified" and defer to the user's judgment
 
-> 型チェックとテストはコードの正しさを確認するもので、機能の正しさは確認しない。
+> Type checks and tests confirm the correctness of the code, not the correctness of the feature.
 
 ---
 
-## 8. 開発原則
-詳細は `principles/` 配下を参照: `development.md` / `error-handling.md` / `code-quality.md` / `testing.md` / `security.md` / `performance.md` / `git.md` / `dependencies.md`
+## 8. Development Principles
+For details, see under `principles/`: `development.md` / `error-handling.md` / `code-quality.md` / `testing.md` / `security.md` / `performance.md` / `git.md` / `dependencies.md`
+
+@RTK.md

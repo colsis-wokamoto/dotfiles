@@ -1,54 +1,102 @@
-# AGENTS.md — Codex エージェント運用ガイドライン
+# AGENTS.md — Codex Agent Operating Guidelines
 
-> 常時参照される静的ルールのみを記述する。案件固有の可変情報は `memory/project_*.md` に分離する。
+> This file should contain only static rules that are always applicable. Project-specific and changeable information must be stored separately in `memory/project_*.md`.
 
-## 0. 適用範囲
-- 対象: ホスト上で起動するすべての Codex セッション
-- 優先順位: ユーザー直接指示 > 本ファイル > Skills / プラグイン既定値
+## 0. Scope
+- Applies to: All Codex sessions running on the host.
+- Priority order: Direct user instructions > This file > Skill / plugin defaults.
 
-## 1. ツール使用ルール
-- 検索は `rg`、一覧は `rg --files`、手動編集は `apply_patch`、計画管理は `update_plan` を使う。
-- 独立した読み取り・検索・検証は `multi_tool_use.parallel` で並列化してよい。
-- サブエージェントは、ユーザーが明示的に委任・並列作業を求めた場合のみ使う。
+## 1. Tool Usage Rules
+- Use `rg` for searching, `rg --files` for file listing, `apply_patch` for manual edits, and `update_plan` for task planning and progress management.
+- Independent reading, searching, and verification tasks may be parallelized using `multi_tool_use.parallel`.
+- Use sub-agents only when the user explicitly requests delegation or parallel execution.
 
-## 2. 禁止事項
-- `git push --force` / `git reset --hard` / `rm -rf` はユーザー明示承認なしで実行しない。
-- `--no-verify` / `--no-gpg-sign` でフックを回避しない。
-- `.env` / `credentials*` / `~/.aws/**` / `~/.ssh/**` / `*.pem` / `*.key` は読み取り・編集・コミットしない。
+## 2. Prohibited Actions
+- Do not execute `git push --force`, `git reset --hard`, or `rm -rf` without explicit user approval.
+- Do not bypass hooks using `--no-verify` or `--no-gpg-sign`.
+- Do not read, edit, or commit `.env`, `credentials*`, `~/.aws/**`, `~/.ssh/**`, `*.pem`, or `*.key`.
 
 ## 3. Skills / Plugins
-- Skill frontmatter には `description` / `inputs` / `outputs` / `side_effects` / `permissions` を書く。
-- `permissions` は必要な Codex ツール、MCP、外部コマンドを最小権限で明記する。
-- MCP や外部ツールは必要時のみ有効化し、ネットワーク・書き込み・破壊的操作は実行前に承認要否を確認する。
+- Skill frontmatter must include: `description`, `inputs`, `outputs`, `side_effects`, and `permissions`.
+- `permissions` must explicitly specify the required Codex tools, MCPs, and external commands, following the principle of least privilege.
+- Enable MCPs and external tools only when necessary. Before performing network access, write operations, or destructive actions, confirm whether user approval is required.
 
-## 4. 失敗時のループ制御
-- 同一コマンドの連続失敗 2 回で停止し、状況を報告する。
-- 失敗時は、原因特定 → 別ツール / 別アプローチを 1 つ試す → なお失敗ならユーザーに判断を仰ぐ。
-- ループ抑制を理由に `try/catch` で握りつぶさない。
+## 4. Failure Loop Control
+- Stop after two consecutive failures of the same command and report the situation.
+- When a failure occurs:
+  1. Identify the cause.
+  2. Try one alternative tool or approach.
+  3. If it still fails, ask the user how to proceed.
+- Do not suppress errors with `try/catch` merely to avoid loop detection.
 
-## 5. パーミッション設計
-- `~/.codex/config.toml` では `approval_policy` と `sandbox_mode` を明示する。
-- 既定は `workspace-write` + 承認制、信頼済みプロジェクトだけ緩和する。
-- 機密パス禁止は config だけに依存せず、本ファイルの禁止事項として維持する。
+## 5. Permission Design
+- Explicitly define `approval_policy` and `sandbox_mode` in `~/.codex/config.toml`.
+- The default configuration should be `workspace-write` with approval required. Relax restrictions only for trusted projects.
+- Do not rely solely on configuration files to protect sensitive paths; maintain the restrictions listed in this document as well.
 
-## 6. メモリ階層
-- 短期: 本会話内（plan / tasks）。`memory/` には書かない。
-- 中期: `memory/project_*.md`。案件・スプリント単位。
-- 長期: `memory/user_*.md` / `memory/feedback_*.md`。恒常的なユーザー像やフィードバック。
-- `MEMORY.md` はインデックス専用、1 行 150 字以内。本ファイルに動的情報を書かない。
+## 6. Memory Hierarchy
+- Short-term: Within the current conversation (plans/tasks). Do not write to `memory/`.
+- Mid-term: `memory/project_*.md` for project- or sprint-level information.
+- Long-term: `memory/user_*.md` and `memory/feedback_*.md` for persistent user preferences and feedback.
+- `MEMORY.md` is for indexing only. Keep each line under 150 characters. Do not store dynamic information in this file.
 
-## 7. キャッシュ最適化
-- 本ファイル上部ほど更新頻度が低い項目を配置（OpenAI のプロンプトキャッシュは安定なプレフィックスでヒット率が上がる）
-- 待機を伴う処理は短いポーリングを繰り返すより 1 度にまとめる（プロンプトキャッシュ TTL の浪費を抑える）
+## 7. Cache Optimization
+- Place less frequently updated content near the top of this file (OpenAI prompt caching achieves better hit rates with stable prefixes).
+- For operations involving waiting periods, batch work whenever possible instead of repeatedly polling at short intervals (to avoid wasting prompt-cache TTL).
 
-## 8. 検証ループ
-タスクは以下を満たすまで「完了」と報告しない:
-- [ ] 該当箇所の `lint` / `typecheck` / `test` がパス（プロジェクトの規定コマンド）
-- [ ] UI 変更時はブラウザでゴールデンパス＋エッジケースを操作確認
-- [ ] ログ / 出力に想定外のエラー・警告が出ていない
-- [ ] 動作確認できない場合は「未検証」と明示してユーザーに判断を委ねる
+## 8. Verification Loop
+Do not report a task as complete until all of the following conditions are satisfied:
 
-> 型チェックとテストはコードの正しさを確認するもので、機能の正しさは確認しない。
+- [ ] `lint`, `typecheck`, and `test` pass for the relevant code (using project-defined commands).
+- [ ] For UI changes, verify both the golden path and relevant edge cases in a browser.
+- [ ] Logs and output contain no unexpected errors or warnings.
+- [ ] If verification cannot be performed, explicitly state that the result is "unverified" and ask the user to make the final judgment.
 
-## 9. 開発原則
-詳細は `principles/` を参照する: `development.md`, `error-handling.md`, `code-quality.md`, `testing.md`, `security.md`, `performance.md`, `git.md`, `dependencies.md`
+> Type checking and tests verify code correctness, but they do not guarantee functional correctness.
+
+## 9. Development Principles
+For details, refer to the documents in `principles/`:
+`development.md`, `error-handling.md`, `code-quality.md`, `testing.md`, `security.md`, `performance.md`, `git.md`, and `dependencies.md`.
+
+<!-- headroom:rtk-instructions -->
+# RTK (Rust Token Killer) - Token-Optimized Commands
+
+When running shell commands, **always prefix with `rtk`**. This reduces context
+usage by 60-90% with zero behavior change. If rtk has no filter for a command,
+it passes through unchanged — so it is always safe to use.
+
+## Key Commands
+```bash
+# Git (59-80% savings)
+rtk git status          rtk git diff            rtk git log
+
+# Files & Search (60-75% savings)
+rtk ls <path>           rtk read <file>         rtk grep <pattern>
+rtk find <pattern>      rtk diff <file>
+
+# Test (90-99% savings) — shows failures only
+rtk pytest tests/       rtk cargo test          rtk test <cmd>
+
+# Build & Lint (80-90% savings) — shows errors only
+rtk tsc                 rtk lint                rtk cargo build
+rtk prettier --check    rtk mypy                rtk ruff check
+
+# Analysis (70-90% savings)
+rtk err <cmd>           rtk log <file>          rtk json <file>
+rtk summary <cmd>       rtk deps                rtk env
+
+# GitHub (26-87% savings)
+rtk gh pr view <n>      rtk gh run list         rtk gh issue list
+
+# Infrastructure (85% savings)
+rtk docker ps           rtk kubectl get         rtk docker logs <c>
+
+# Package managers (70-90% savings)
+rtk pip list            rtk pnpm install        rtk npm run <script>
+```
+
+## Rules
+- In command chains, prefix each segment: `rtk git add . && rtk git commit -m "msg"`
+- For debugging, use raw command without rtk prefix
+- `rtk proxy <cmd>` runs command without filtering but tracks usage
+<!-- /headroom:rtk-instructions -->
