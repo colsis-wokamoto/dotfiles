@@ -57,7 +57,7 @@ if [ -f $HOME/.zsh/git-prompt.sh ]; then
   GIT_PS1_SHOWSTASHSTATE=true
   GIT_PS1_SHOWUPSTREAM=auto
 
-  setopt PROMPT_SUBST ; PS1='%F{green}%n@%m%f: %F{cyan}%~%f %F{red}$(__git_ps1 "(%s)")%f \$ '
+  setopt PROMPT_SUBST ; PS1='%F{green}%n@local%f: %F{cyan}%~%f %F{red}$(__git_ps1 "(%s)")%f \$ '
 fi
 
 # ===== Completion (compinit) =====
